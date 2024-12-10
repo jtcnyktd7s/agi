@@ -2,104 +2,120 @@ import numpy as np
 import matplotlib.pyplot as plt
 import streamlit as st
 
+
 # Simulation Logic
-def run_simulation(memory_steps, reasoning_rate, meta_learning_rate, transfer_learning_rate):
-    # Initialize arrays to track feedback over time
-    memory_agent_feedback = np.zeros(memory_steps)
-    reasoning_agent_feedback = np.zeros(memory_steps)
-    meta_learning_feedback = np.zeros(memory_steps)
-    transfer_learning_feedback = np.zeros(memory_steps)
+def simulate_system(memory_agents, reasoning_rate, meta_learning_rate, transfer_learning_rate, steps):
+    """
+    Simulate the system based on provided parameters.
+    Args:
+        memory_agents: Number of memory agents (feedback system for simulation).
+        reasoning_rate: Reasoning agent feedback rate.
+        meta_learning_rate: Degradation rate for meta-learning.
+        transfer_learning_rate: Feedback rate change for transfer learning agents.
+        steps: Number of simulation steps to run.
+    Returns:
+        memory_feedback: Memory agent feedback simulation data.
+        reasoning_feedback: Reasoning agent feedback simulation data.
+        meta_learning_feedback: Meta-learning feedback degradation data.
+        transfer_learning_feedback: Transfer learning feedback data over time.
+    """
+    memory_feedback = []
+    reasoning_feedback = []
+    meta_learning_feedback = []
+    transfer_learning_feedback = []
 
-    # Initialize starting conditions
-    memory_agent_feedback[0] = 7  # Start memory agents with count 7
-    reasoning_agent_feedback[0] = 20  # Starting feedback count for reasoning agents
-    meta_learning_feedback[0] = -1  # Start meta-learning feedback at -1
-    transfer_learning_feedback[0] = 2  # Start transfer learning knowledge count at 2
+    # Initialize values
+    mem_agents = memory_agents
+    reason_feedback = 0
+    meta_feedback = -1.0
+    trans_feedback = 0
 
-    # Run simulation steps
-    for t in range(1, memory_steps):
-        # Memory agent feedback with small stochastic updates
-        memory_agent_feedback[t] = memory_agent_feedback[t - 1] + np.random.choice([0, 1])
+    for step in range(steps):
+        # Simulate memory feedback with random variability
+        mem_agents += np.random.randint(0, 2)  # Simulate stochastic feedback loop
+        memory_feedback.append(mem_agents)
 
-        # Reasoning agent feedback grows linearly (deterministic growth influenced by reasoning_rate)
-        reasoning_agent_feedback[t] = reasoning_agent_feedback[t - 1] + reasoning_rate
+        # Simulate reasoning feedback (steady deterministic growth)
+        reason_feedback += reasoning_rate
+        reasoning_feedback.append(reason_feedback)
 
-        # Meta-learning feedback with stochastic degradation over time
-        meta_learning_feedback[t] = meta_learning_feedback[t - 1] - meta_learning_rate * np.random.rand()
+        # Simulate meta-learning degradation
+        meta_feedback -= meta_learning_rate
+        meta_learning_feedback.append(meta_feedback)
 
-        # Transfer learning feedback increases but with slight variability
-        transfer_learning_feedback[t] = transfer_learning_feedback[t - 1] + transfer_learning_rate * np.random.choice([0, 1])
+        # Simulate transfer learning feedback growth
+        trans_feedback += transfer_learning_rate
+        transfer_learning_feedback.append(trans_feedback)
 
-    # Return all feedback arrays
-    return memory_agent_feedback, reasoning_agent_feedback, meta_learning_feedback, transfer_learning_feedback
-
-
-# Plotting logic
-def plot_results(memory_feedback, reasoning_feedback, meta_feedback, transfer_feedback):
-    fig, ax = plt.subplots(2, 2, figsize=(15, 10))
-
-    # Plot Memory Agent Feedback
-    ax[0, 0].plot(memory_feedback, label="Memory Agent Feedback")
-    ax[0, 0].set_title("Memory Agent Feedback")
-    ax[0, 0].set_xlabel("Time Steps")
-    ax[0, 0].set_ylabel("Agent Count")
-    ax[0, 0].legend()
-
-    # Plot Reasoning Agent Feedback
-    ax[0, 1].plot(reasoning_feedback, label="Reasoning Agent Feedback", color="orange")
-    ax[0, 1].set_title("Reasoning Agent Feedback")
-    ax[0, 1].set_xlabel("Time Steps")
-    ax[0, 1].set_ylabel("Agent Feedback")
-    ax[0, 1].legend()
-
-    # Plot Meta-Learning Feedback
-    ax[1, 0].plot(meta_feedback, label="Meta-Learning Feedback", color="red")
-    ax[1, 0].set_title("Meta-Learning Feedback")
-    ax[1, 0].set_xlabel("Time Steps")
-    ax[1, 0].set_ylabel("Feedback")
-    ax[1, 0].legend()
-
-    # Plot Transfer Learning Feedback
-    ax[1, 1].plot(transfer_feedback, label="Transfer Learning Feedback", color="green")
-    ax[1, 1].set_title("Transfer Learning Feedback")
-    ax[1, 1].set_xlabel("Time Steps")
-    ax[1, 1].set_ylabel("Feedback")
-    ax[1, 1].legend()
-
-    st.pyplot(fig)
+    return memory_feedback, reasoning_feedback, meta_learning_feedback, transfer_learning_feedback
 
 
-# Main Streamlit App
-st.title("AGI Feedback Simulation Dashboard")
-st.write(
-    "Explore how memory agents, reasoning agents, meta-learning, and transfer learning feedback patterns interact over time."
+# Streamlit UI
+st.title("AGI Simulation Feedback Model")
+st.sidebar.header("Adjust Simulation Parameters")
+
+# Sidebar sliders for simulation parameters
+memory_agents_input = st.sidebar.slider("Number of Initial Memory Agents", min_value=5, max_value=30, value=10)
+reasoning_rate_input = st.sidebar.slider("Reasoning Agent Feedback Rate", min_value=5, max_value=20, value=10)
+meta_learning_rate_input = st.sidebar.slider("Meta-Learning Degradation Rate", min_value=0.01, max_value=0.2, value=0.1)
+transfer_learning_rate_input = st.sidebar.slider("Transfer Learning Feedback Rate", min_value=1, max_value=5, value=2)
+steps_input = st.sidebar.slider("Number of Simulation Steps", min_value=10, max_value=50, value=30)
+
+# Run simulation logic
+st.write("Running simulation with given parameters...")
+memory_feedback, reasoning_feedback, meta_learning_feedback, transfer_learning_feedback = simulate_system(
+    memory_agents_input,
+    reasoning_rate_input,
+    meta_learning_rate_input,
+    transfer_learning_rate_input,
+    steps_input,
 )
 
-# Input sliders for simulation parameters
-st.sidebar.header("Simulation Parameters")
-memory_steps = st.sidebar.slider("Number of Time Steps", min_value=10, max_value=100, value=50)
-reasoning_rate = st.sidebar.slider("Reasoning Agent Feedback Rate", min_value=1, max_value=10, value=2)
-meta_learning_rate = st.sidebar.slider("Meta-Learning Rate", min_value=0.01, max_value=0.2, value=0.05)
-transfer_learning_rate = st.sidebar.slider("Transfer Learning Rate", min_value=0.01, max_value=0.2, value=0.05)
+# Display simulation feedback
+st.subheader("Simulation Results Summary")
+st.write("Memory Agent Feedback:", memory_feedback)
+st.write("Reasoning Agent Feedback:", reasoning_feedback)
+st.write("Meta-Learning Feedback:", meta_learning_feedback)
+st.write("Transfer Learning Feedback:", transfer_learning_feedback)
 
-# Run simulation button
-if st.sidebar.button("Run Simulation"):
-    with st.spinner("Running simulation..."):
-        # Run the simulation with provided parameters
-        memory_feedback, reasoning_feedback, meta_feedback, transfer_feedback = run_simulation(
-            memory_steps, reasoning_rate, meta_learning_rate, transfer_learning_rate
-        )
+# Graphs to visualize results
+st.subheader("Simulation Graphs")
+col1, col2 = st.columns(2)
 
-        # Display the summary stats
-        correlation_memory_reasoning = np.corrcoef(memory_feedback, reasoning_feedback)[0, 1]
-        correlation_meta_transfer = np.corrcoef(meta_feedback, transfer_feedback)[0, 1]
+# Graph 1: Memory Agent Feedback
+with col1:
+    st.write("Memory Agent Feedback")
+    plt.plot(range(len(memory_feedback)), memory_feedback, label="Memory Agents")
+    plt.xlabel("Time Steps")
+    plt.ylabel("Agent Feedback")
+    plt.legend()
+    st.pyplot(plt)
+    plt.clf()
 
-        # Display statistics
-        st.write("Simulation Statistics Summary:")
-        st.write(f"Memory-Agent vs Reasoning-Agent Correlation: {correlation_memory_reasoning:.2f}")
-        st.write(f"Meta-Learning vs Transfer Learning Correlation: {correlation_meta_transfer:.2f}")
+# Graph 2: Reasoning Agent Feedback
+with col2:
+    st.write("Reasoning Agent Feedback")
+    plt.plot(range(len(reasoning_feedback)), reasoning_feedback, label="Reasoning Feedback", color='orange')
+    plt.xlabel("Time Steps")
+    plt.ylabel("Feedback Level")
+    plt.legend()
+    st.pyplot(plt)
+    plt.clf()
 
-        # Plot Results
-        plot_results(memory_feedback, reasoning_feedback, meta_feedback, transfer_feedback)
-else:
-    st.warning("Adjust parameters and click 'Run Simulation' to see results.")
+# Graph 3: Meta-Learning Feedback
+st.write("Meta-Learning Feedback (Degradation)")
+plt.plot(range(len(meta_learning_feedback)), meta_learning_feedback, label="Meta-Learning Feedback", color='red')
+plt.xlabel("Time Steps")
+plt.ylabel("Meta-Learning Feedback")
+plt.legend()
+st.pyplot(plt)
+plt.clf()
+
+# Graph 4: Transfer Learning Feedback
+st.write("Transfer Learning Feedback")
+plt.plot(range(len(transfer_learning_feedback)), transfer_learning_feedback, label="Transfer Learning Feedback", color='green')
+plt.xlabel("Time Steps")
+plt.ylabel("Feedback Level")
+plt.legend()
+st.pyplot(plt)
+plt.clf()
