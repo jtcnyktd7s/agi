@@ -78,6 +78,48 @@ def visualize_feedback(memory_feedback, reasoning_feedback, meta_learning_feedba
     st.pyplot(fig)
 
 
+# Visualization for Comparison
+def compare_simulations(sim1, sim2, steps):
+    """
+    Compare two simulation runs by plotting them side-by-side.
+    """
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+    # Comparison for Memory Feedback
+    axes[0, 0].plot(range(steps), sim1[0], color='blue', label="Scenario 1")
+    axes[0, 0].plot(range(steps), sim2[0], color='orange', linestyle='dashed', label="Scenario 2")
+    axes[0, 0].set_title("Memory Feedback Comparison")
+    axes[0, 0].set_xlabel("Time Steps")
+    axes[0, 0].set_ylabel("Feedback")
+    axes[0, 0].legend()
+
+    # Comparison for Reasoning Feedback
+    axes[0, 1].plot(range(steps), sim1[1], color='green', label="Scenario 1")
+    axes[0, 1].plot(range(steps), sim2[1], color='red', linestyle='dashed', label="Scenario 2")
+    axes[0, 1].set_title("Reasoning Feedback Comparison")
+    axes[0, 1].set_xlabel("Time Steps")
+    axes[0, 1].set_ylabel("Feedback")
+    axes[0, 1].legend()
+
+    # Comparison for Meta-Learning Feedback
+    axes[1, 0].plot(range(steps), sim1[2], color='purple', label="Scenario 1")
+    axes[1, 0].plot(range(steps), sim2[2], color='yellow', linestyle='dashed', label="Scenario 2")
+    axes[1, 0].set_title("Meta-Learning Feedback Comparison")
+    axes[1, 0].set_xlabel("Time Steps")
+    axes[1, 0].set_ylabel("Feedback")
+    axes[1, 0].legend()
+
+    # Comparison for Transfer Feedback
+    axes[1, 1].plot(range(steps), sim1[3], color='pink', label="Scenario 1")
+    axes[1, 1].plot(range(steps), sim2[3], color='brown', linestyle='dashed', label="Scenario 2")
+    axes[1, 1].set_title("Transfer Learning Feedback Comparison")
+    axes[1, 1].set_xlabel("Time Steps")
+    axes[1, 1].set_ylabel("Feedback")
+    axes[1, 1].legend()
+
+    st.pyplot(fig)
+
+
 # Main App
 def main():
     # App Title
@@ -92,39 +134,22 @@ def main():
     Adjust the parameters using the sliders and explore how these feedback loops evolve over time.
     """)
 
-    # Simulation Parameters (Sidebar Controls)
+    # Sidebar for parameters
     st.sidebar.header("Simulation Parameters")
-    memory_agents = st.sidebar.slider("Initial number of Memory Agents", min_value=5, max_value=50, value=20)
-    reasoning_rate = st.sidebar.slider("Reasoning feedback rate", min_value=0.5, max_value=5.0, value=1.0)
-    meta_learning_rate = st.sidebar.slider("Meta-learning degradation rate", min_value=0.01, max_value=1.0, value=0.1)
-    transfer_learning_rate = st.sidebar.slider("Transfer learning feedback growth rate", min_value=0.1, max_value=3.0, value=0.5)
-    simulation_steps = st.sidebar.slider("Number of simulation steps", min_value=50, max_value=200, value=100)
+    reasoning_rate_1 = st.sidebar.slider("Reasoning rate (Scenario 1)", 0.5, 3.0, 1.0)
+    meta_learning_rate_1 = st.sidebar.slider("Meta-learning rate (Scenario 1)", 0.01, 0.5, 0.1)
+    reasoning_rate_2 = st.sidebar.slider("Reasoning rate (Scenario 2)", 1.0, 3.0, 2.0)
+    meta_learning_rate_2 = st.sidebar.slider("Meta-learning rate (Scenario 2)", 0.01, 0.5, 0.2)
 
-    # Run simulation button
-    if st.sidebar.button("Run Simulation"):
-        with st.spinner("Running simulation..."):
-            # Run simulation
-            memory_feedback, reasoning_feedback, meta_learning_feedback, transfer_learning_feedback = simulate_feedback(
-                memory_agents, reasoning_rate, meta_learning_rate, transfer_learning_rate, simulation_steps
-            )
+    steps = st.sidebar.slider("Simulation steps", 50, 200, 100)
 
-            # Compute correlations
-            mem_reason_corr, meta_transf_corr = compute_correlations(
-                memory_feedback, reasoning_feedback, meta_learning_feedback, transfer_learning_feedback
-            )
+    if st.sidebar.button("Compare Simulations"):
+        sim1 = simulate_feedback(20, reasoning_rate_1, meta_learning_rate_1, 1, steps)
+        sim2 = simulate_feedback(20, reasoning_rate_2, meta_learning_rate_2, 1, steps)
 
-            # Display the graphs
-            visualize_feedback(
-                memory_feedback, reasoning_feedback, meta_learning_feedback, transfer_learning_feedback, simulation_steps
-            )
-
-            # Display statistics summary
-            st.subheader("Simulation Statistics Summary:")
-            st.write(f"Memory-Agent vs Reasoning-Agent Correlation: {mem_reason_corr:.2f}")
-            st.write(f"Meta-Learning vs Transfer Learning Correlation: {meta_transf_corr:.2f}")
-
+        compare_simulations(sim1, sim2, steps)
     else:
-        st.info("Adjust parameters and click 'Run Simulation' to explore the feedback mechanisms.")
+        st.info("Adjust parameters and click 'Compare Simulations' to see trends side-by-side comparison.")
 
 
 if __name__ == "__main__":
